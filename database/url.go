@@ -18,39 +18,39 @@ type URL struct {
 	Mode string
 }
 
-var urlDefaults = map[string]string{
-	"User": "postgres",
-	"Pass": "password",
-	"Host": "127.0.0.1",
-	"Port": "5432",
-	"Name": "db",
-	"Root": "",
-	"Mode": "verify-full",
+var defaultURL = URL{
+	User: "postgres",
+	Pass: "password",
+	Host: "127.0.0.1",
+	Port: "5432",
+	Name: "db",
+	Root: "",
+	Mode: "verify-full",
 }
 
 func (u *URL) withDefaults() *URL {
 	var v URL
 	v = *u
 	if v.User == "" {
-		v.User = urlDefaults["User"]
+		v.User = defaultURL.User
 	}
 	if v.Pass == "" {
-		v.Pass = urlDefaults["Pass"]
+		v.Pass = defaultURL.Pass
 	}
 	if v.Host == "" {
-		v.Host = urlDefaults["Host"]
+		v.Host = defaultURL.Host
 	}
 	if v.Port == "" {
-		v.Port = urlDefaults["Port"]
+		v.Port = defaultURL.Port
 	}
 	if v.Name == "" {
-		v.Name = urlDefaults["Name"]
+		v.Name = defaultURL.Name
 	}
 	if v.Root == "" {
-		v.Root = urlDefaults["Root"]
+		v.Root = defaultURL.Root
 	}
 	if v.Mode == "" {
-		v.Mode = urlDefaults["Mode"]
+		v.Mode = defaultURL.Mode
 	}
 	return &v
 }
