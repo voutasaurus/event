@@ -3,7 +3,7 @@ package event
 import "time"
 
 type Event struct {
-	when time.Time
-	what string // url
-	done bool
+	When time.Time
+	What string // url
+	Done bool
 }

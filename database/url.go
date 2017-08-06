@@ -55,15 +55,6 @@ func (u *URL) withDefaults() *URL {
 	return &v
 }
 
-var urlTemplate = template.Must(template.New("connect").Parse("postgres://{{.User}}:{{.Pass}}@{{.Host}}:{{.Port}}/{{.Name}}{{.params}}"))
-
-func (u *URL) String() string {
-	v := u.withDefaults()
-	var buf bytes.Buffer
-	urlTemplate.Execute(&buf, v)
-	return buf.String()
-}
-
 func (u *URL) params() string {
 	if u.Mode == "" && u.Root == "" {
 		return ""
@@ -76,4 +67,13 @@ func (u *URL) params() string {
 		v.Add("sslrootcert", u.Root)
 	}
 	return "?" + v.Encode()
+}
+
+var urlTemplate = template.Must(template.New("connect").Parse("postgres://{{.User}}:{{.Pass}}@{{.Host}}:{{.Port}}/{{.Name}}{{.params}}"))
+
+func (u *URL) String() string {
+	v := u.withDefaults()
+	var buf bytes.Buffer
+	urlTemplate.Execute(&buf, v)
+	return buf.String()
 }
