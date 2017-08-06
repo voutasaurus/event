@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"time"
 
 	. "github.com/voutasaurus/event"
 	"github.com/voutasaurus/event/database"
@@ -20,6 +22,10 @@ var (
 	envDBName = os.Getenv("EVENTS_DB_NAME")
 	envDBRoot = os.Getenv("EVENTS_DB_ROOT")
 	envDBMode = os.Getenv("EVENTS_DB_MODE")
+)
+
+var (
+	errTimeout = errors.New("timeout attempting to reach event URL")
 )
 
 func main() {
@@ -45,6 +51,8 @@ func main() {
 		db: db,
 	}
 
+	go s.loop()
+
 	http.HandleFunc("/log", serveLog)
 	http.HandleFunc("/schedule", s.serveSchedule)
 	http.HandleFunc("/", serveDefault)
@@ -55,6 +63,49 @@ func main() {
 
 type server struct {
 	db *database.DB
+}
+
+func (s *server) loop() {
+	for {
+		if err := s.processEvents(); err != nil {
+			log.Println("loop:", err)
+		}
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func (s *server) processEvents() error {
+	ee, err := s.db.GetEvents()
+	if err != nil {
+		return err
+	}
+	for _, e := range ee {
+		if err := s.processEvent(e); err != nil {
+			log.Println("processEvent:", err)
+		}
+	}
+	return nil
+}
+
+func (s *server) processEvent(e *Event) error {
+	interval := 10 * time.Millisecond
+	for n := 0; n < 20; n++ {
+		resp, err := http.Get(e.What)
+		if err != nil || resp.StatusCode >= 400 {
+			interval = backoff(interval)
+			continue
+		}
+		return nil
+	}
+	return errTimeout
+}
+
+func backoff(current time.Duration) time.Duration {
+	time.Sleep(current)
+	if current < 10*time.Second {
+		return current * 2
+	}
+	return 10 * time.Second
 }
 
 func serveDefault(w http.ResponseWriter, r *http.Request) {

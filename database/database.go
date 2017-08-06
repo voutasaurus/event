@@ -24,3 +24,8 @@ func (db *DB) AddEvent(u *User, e *Event) error {
 	// TODO: implement
 	return nil
 }
+
+func (db *DB) GetEvents() ([]*Event, error) {
+	// TODO: implement
+	return nil, nil
+}
