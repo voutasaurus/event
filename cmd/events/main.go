@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -51,7 +52,7 @@ func main() {
 		db: db,
 	}
 
-	go s.loop()
+	go s.loop(context.Background())
 
 	http.HandleFunc("/log", serveLog)
 	http.HandleFunc("/schedule", s.serveSchedule)
@@ -65,12 +66,17 @@ type server struct {
 	db *database.DB
 }
 
-func (s *server) loop() {
+func (s *server) loop(ctx context.Context) {
 	for {
-		if err := s.processEvents(); err != nil {
-			log.Println("loop:", err)
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			if err := s.processEvents(); err != nil {
+				log.Println("loop:", err)
+			}
+			time.Sleep(10 * time.Second)
 		}
-		time.Sleep(10 * time.Second)
 	}
 }
 
